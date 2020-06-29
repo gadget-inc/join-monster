@@ -1,7 +1,54 @@
 ### v3.0.0 (unreleased)
 
 **Breaking changes:**
-- Update GraphQL requirement to version 15, which supports a new `extensions` property where join-monster config lives. The config keys and values are unchanged, but they must be nested under an `extensions: { joinMonster: ... }}` property on the GraphQLObjectTypes and fields using join-monster. For more information, see the upgrade guide:
+
+- Update GraphQL requirement to version 15, which supports a new `extensions` property where join-monster config lives. The config keys and values are unchanged, but they must be nested under an `extensions: { joinMonster: ... }}` property on the GraphQLObjectTypes and fields using join-monster. To upgrade, you must move any non-standard keys off of your `GraphQLObjectType`s or field configs into the `extensions` of the same field. So, something like this:
+
+```javascript
+const User = new GraphQLObjectType({
+  name: 'User',
+  sqlTable: 'users',
+  uniqueKey: 'id',
+  fields: () => ({
+    id: {
+      type: GraphQLInt
+    },
+    email: {
+      type: GraphQLString,
+      sqlColumn: 'email_address'
+    },
+  })
+}
+```
+
+becomes this:
+
+```javascript
+const User = new GraphQLObjectType({
+  name: 'User',
+  extensions: {
+    joinMonster: {
+      sqlTable: 'users',
+      uniqueKey: 'id'
+    }
+  },
+  fields: () => ({
+    id: {
+      type: GraphQLInt
+    },
+    email: {
+      type: GraphQLString,
+      extensions: {
+        joinMonster: {
+          sqlColumn: 'email_address'
+        }
+      }
+    }
+  })
+}
+```
+
+The resulting code is sadly more verbose, but the only supported way of layering in extra information to a GraphQL schema going forward.
 
 ### v2.1.2 (May 25, 2020)
 #### Fixed
