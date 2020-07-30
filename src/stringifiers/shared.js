@@ -40,6 +40,19 @@ export function whereConditionIsntSupposedToGoInsideSubqueryOrOnNextBatch(
   )
 }
 
+function sortKeyToOrderColumns(sortKey, args) {
+  let descending = sortKey.order.toUpperCase() === 'DESC'
+  // flip the sort order if doing backwards paging
+  if (args && args.last) {
+    descending = !descending
+  }
+  const orderColumns = {}
+  for (let column of wrap(sortKey.key)) {
+    orderColumns[column] = descending ? 'DESC' : 'ASC'
+  }
+  return orderColumns
+}
+
 export function keysetPagingSelect(
   table,
   whereCondition,
@@ -169,29 +182,13 @@ export function interpretForKeysetPaging(node, dialect) {
   const order = { columns: {} }
   if (node.sortKey) {
     sortKey = node.sortKey
-    descending = sortKey.order.toUpperCase() === 'DESC'
     sortTable = node.as
-    // flip the sort order if doing backwards paging
-    if (idx(node, _ => _.args.last)) {
-      descending = !descending
-    }
-    for (let column of wrap(sortKey.key)) {
-      order.columns[column] = descending ? 'DESC' : 'ASC'
-    }
-    order.table = node.as
   } else {
     sortKey = node.junction.sortKey
-    descending = sortKey.order.toUpperCase() === 'DESC'
     sortTable = node.junction.as
-    // flip the sort order if doing backwards paging
-    if (idx(node, _ => _.args.last)) {
-      descending = !descending
-    }
-    for (let column of wrap(sortKey.key)) {
-      order.columns[column] = descending ? 'DESC' : 'ASC'
-    }
-    order.table = node.junction.as
   }
+  order.table = sortTable
+  order.columns = sortKeyToOrderColumns(sortKey, node.args)
 
   let limit = ['mariadb', 'mysql', 'oracle'].includes(name)
     ? '18446744073709551615'

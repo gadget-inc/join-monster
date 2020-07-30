@@ -6,6 +6,7 @@ import { validateSqlAST, inspect, wrap } from '../util'
 import {
   joinPrefix,
   thisIsNotTheEndOfThisBatch,
+  sortKeyToOrderColumns,
   whereConditionIsntSupposedToGoInsideSubqueryOrOnNextBatch
 } from './shared'
 
@@ -442,16 +443,4 @@ function stringifyOuterOrder(orders, q) {
     }
   }
   return conditions.join(', ')
-}
-
-function sortKeyToOrderColumns(sortKey, args) {
-  let descending = sortKey.order.toUpperCase() === 'DESC'
-  if (args && args.last) {
-    descending = !descending
-  }
-  const orderColumns = {}
-  for (let column of wrap(sortKey.key)) {
-    orderColumns[column] = descending ? 'DESC' : 'ASC'
-  }
-  return orderColumns
 }
