@@ -45,10 +45,11 @@ export interface FieldConfigExtension<TSource, TContext, TArgs> {
     >
     orderBy?: ThunkWithArgsCtx<OrderBy, TContext, TArgs>
     sortKey?: ThunkWithArgsCtx<
-      {
-        order: Order
-        key: string | string[]
-      },
+      | {
+          order: Order
+          key: string | string[] // string array is the deprecated old style of passing multiple sort keys
+        }
+      | { key: string; order: Order }[],
       TContext,
       TArgs
     >
@@ -65,10 +66,11 @@ export interface FieldConfigExtension<TSource, TContext, TArgs> {
   limit?: ThunkWithArgsCtx<number, TContext, TArgs>
   orderBy?: ThunkWithArgsCtx<OrderBy, TContext, TArgs>
   sortKey?: ThunkWithArgsCtx<
-    {
-      order: Order
-      key: string | string[]
-    },
+    | {
+        order: Order
+        key: string | string[] // string array is the deprecated old style of passing multiple sort keys
+      }
+    | { key: string; order: Order }[],
     TContext,
     TArgs
   >

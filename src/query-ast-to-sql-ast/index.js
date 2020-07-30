@@ -709,7 +709,7 @@ function keyToASTChild(key, namespace) {
 function handleColumnsRequiredForPagination(sqlASTNode, namespace) {
   if (sqlASTNode.sortKey || idx(sqlASTNode, _ => _.junction.sortKey)) {
     const sortKey = sqlASTNode.sortKey || sqlASTNode.junction.sortKey
-    assert(sortKey.order, '"sortKey" must have "order"')
+
     // this type of paging uses the "sort key(s)". we need to get this in order to generate the cursor
     for (let column of wrap(ensure(sortKey, 'key'))) {
       const newChild = columnToASTChild(column, namespace)

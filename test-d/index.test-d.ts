@@ -95,10 +95,12 @@ new GraphQLObjectType<any, ExampleContext>({
           sortKey: (args, context) => {
             expectType<ExampleArgs>(args)
             expectType<ExampleContext>(context)
-            return {
-              order: 'ASC',
-              key: ['id']
-            }
+            return [
+              {
+                order: 'ASC',
+                key: 'id'
+              }
+            ]
           }
         }
       }

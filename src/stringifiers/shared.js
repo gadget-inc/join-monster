@@ -1,3 +1,4 @@
+import assert from 'assert'
 import { filter } from 'lodash'
 import { cursorToOffset } from 'graphql-relay'
 import { wrap, cursorToObj, maybeQuote } from '../util'
@@ -41,15 +42,31 @@ export function whereConditionIsntSupposedToGoInsideSubqueryOrOnNextBatch(
 }
 
 function sortKeyToOrderColumns(sortKey, args) {
-  let descending = sortKey.order.toUpperCase() === 'DESC'
+  const orderColumns = {}
+  let flip = false
   // flip the sort order if doing backwards paging
   if (args && args.last) {
-    descending = !descending
+    flip = true
   }
-  const orderColumns = {}
-  for (let column of wrap(sortKey.key)) {
-    orderColumns[column] = descending ? 'DESC' : 'ASC'
+
+  if (Array.isArray(sortKey)) {
+    for (const { key, order } of sortKey) {
+      assert(order, 'each "sortKey" entry must have an "order"')
+      let descending = order.toUpperCase() === 'DESC'
+      if (flip) descending = !descending
+
+      orderColumns[key] = descending ? 'DESC' : 'ASC'
+    }
+  } else {
+    assert(sortKey.order, 'each "sortKey" entry must have an "order"')
+    let descending = sortKey.order.toUpperCase() === 'DESC'
+    if (flip) descending = !descending
+
+    for (const column of wrap(sortKey.key)) {
+      orderColumns[column] = descending ? 'DESC' : 'ASC'
+    }
   }
+
   return orderColumns
 }
 
