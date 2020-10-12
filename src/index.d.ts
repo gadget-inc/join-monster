@@ -100,6 +100,12 @@ export interface InterfaceTypeExtension {
   alwaysFetch?: string | string[]
 }
 
+export interface ScalarTypeExtension {
+  sqlTable?: string
+  uniqueKey?: string | string[]
+  alwaysFetch?: string | string[]
+}
+
 declare module 'graphql' {
   interface GraphQLObjectTypeExtensions<TSource = any, TContext = any> {
     joinMonster?: ObjectTypeExtension<TSource, TContext>
@@ -116,6 +122,9 @@ declare module 'graphql' {
   }
   interface GraphQLInterfaceTypeExtensions {
     joinMonster?: InterfaceTypeExtension
+  }
+  interface GraphQLScalarTypeExtensions {
+    joinMonster?: ScalarTypeExtension
   }
 }
 

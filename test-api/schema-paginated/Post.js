@@ -2,7 +2,8 @@ import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLInt,
-  GraphQLBoolean
+  GraphQLBoolean,
+  GraphQLList
 } from 'graphql'
 
 import {
@@ -15,6 +16,7 @@ import {
 
 import { User } from './User'
 import { CommentConnection } from './Comment'
+import { Tag, TagConnection } from './Tag'
 import { Authored } from './Authored/Interface'
 import { nodeInterface } from './Node'
 import { q, bool } from '../shared'
@@ -159,6 +161,80 @@ export const Post = new GraphQLObjectType({
       extensions: {
         joinMonster: {
           sqlColumn: 'created_at'
+        }
+      }
+    },
+    tags: {
+      type: new GraphQLList(Tag),
+      resolve: source => {
+        return source.tags.map(tag => tag.tag)
+      },
+      extensions: {
+        joinMonster: {
+          orderBy: 'tag_order',
+          ...(STRATEGY === 'batch'
+            ? {
+                sqlBatch: {
+                  thisKey: 'id',
+                  parentKey: 'post_id'
+                }
+              }
+            : {
+                sqlJoin: (postTable, tagTable) =>
+                  `${postTable}.${q('id', DB)} = ${tagTable}.${q(
+                    'post_id',
+                    DB
+                  )}`
+              })
+        }
+      }
+    },
+    tagsConnection: {
+      type: TagConnection,
+      resolve: source => source.tags.map(tag => tag.tag),
+      extensions: {
+        joinMonster: {
+          orderBy: 'tag_order',
+          ...(STRATEGY === 'batch'
+            ? {
+                sqlBatch: {
+                  thisKey: 'id',
+                  parentKey: 'post_id'
+                }
+              }
+            : {
+                sqlJoin: (postTable, tagTable) =>
+                  `${postTable}.${q('id', DB)} = ${tagTable}.${q(
+                    'post_id',
+                    DB
+                  )}`
+              })
+        }
+      }
+    },
+    firstTag: {
+      type: Tag,
+      resolve: source => {
+        return source.tags[0].tag
+      },
+      extensions: {
+        joinMonster: {
+          limit: 1,
+          orderBy: 'tag_order',
+          ...(STRATEGY === 'batch'
+            ? {
+                sqlBatch: {
+                  thisKey: 'id',
+                  parentKey: 'post_id'
+                }
+              }
+            : {
+                sqlJoin: (postTable, tagTable) =>
+                  `${postTable}.${q('id', DB)} = ${tagTable}.${q(
+                    'post_id',
+                    DB
+                  )}`
+              })
         }
       }
     }
