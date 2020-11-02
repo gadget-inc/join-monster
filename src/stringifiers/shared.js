@@ -50,7 +50,7 @@ export function sortKeyToOrderings(sortKey, args) {
   }
 
   if (Array.isArray(sortKey)) {
-    for (const { column, direction } of sortKey) {
+    for (const { column, key, direction } of sortKey) {
       assert(
         column,
         `Each "sortKey" array entry must have a 'column' and a 'direction' property`
@@ -58,7 +58,7 @@ export function sortKeyToOrderings(sortKey, args) {
       let descending = direction.toUpperCase() === 'DESC'
       if (flip) descending = !descending
 
-      orderColumns.push({ column, direction: descending ? 'DESC' : 'ASC' })
+      orderColumns.push({ column, key, direction: descending ? 'DESC' : 'ASC' })
     }
   } else {
     assert(sortKey.order, 'A "sortKey" object must have an "order"')
@@ -151,10 +151,15 @@ FROM (
 
 export function orderingsToString(orderings, q, as) {
   const orderByClauses = []
-  for (const ordering of orderings) {
-    orderByClauses.push(
-      `${as ? q(as) + '.' : ''}${q(ordering.column)} ${ordering.direction}`
-    )
+  for (const { column, key, direction } of orderings) {
+    let sortKey
+    if(key) {
+      sortKey = key(as)
+    } else {
+      sortKey = `${as ? q(as) + '.' : ''}${q(column)}`
+    }
+
+    orderByClauses.push(`${sortKey} ${direction}`)
   }
   return orderByClauses.join(', ')
 }

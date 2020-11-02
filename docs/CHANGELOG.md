@@ -82,7 +82,7 @@ const User = new GraphQLObjectType({
 })
 ```
 
-- Similarly, add support for explicit `sortKey` column orderings by passing an array of `{ column, direction }` objects. Useful for dynamically generating `sortKey`s for connection pagination without relying on object insertion order. Example:
+- Similarly, add support for explicit `sortKey` column orderings by passing an array of `{ column, key, direction }` objects. Useful for dynamically generating `sortKey`s for connection pagination without relying on object insertion order. Example:
 
 ```javascript
 const User = new GraphQLObjectType({
@@ -96,7 +96,8 @@ const User = new GraphQLObjectType({
           sqlPaginate: true,
           sortKey: [
             { column: 'created_at', direction: 'desc' },
-            { column: 'id', order: 'desc' }
+            { column: 'id', order: 'desc' },
+            { column: 'json', key: '"json"->\'field\'' order: 'desc' }
           ],
           sqlJoin: (userTable, postTable) =>
             `${userTable}.id = ${postTable}.author_id`
@@ -107,7 +108,7 @@ const User = new GraphQLObjectType({
 })
 ```
 
-The old `sortKey` synax (as an object looking like `{key, order}`) continues to work but is no longer recommended. The new syntax allows for reliable sortKey ordering as well as independent directions per sort key, with all the complicated SQL generation handled for you.
+The old `sortKey` synax (as an object looking like `{key, order}`) continues to work but is no longer recommended. The new syntax allows for reliable `sortKey` ordering as well as independent directions per sort key, with all the complicated SQL generation handled for you. The `key` field is optional, and will be used instead of the column to order the results. This is useful, for example, in Postgres, where one may sort by some key into a JSON blob.
 
 - Add support for resolving GraphQL scalars backed by `sqlTable`s. Usually, scalars point to table columns, but this allows them to use the same `extensions` property to declare that the scalar is a whole table. This is often paired with a `resolve` function that takes what `join-monster` returns and turns it into a valid value for the scalar. An example would be a tags field that outputs a list of strings, but where each tag is actually stored as it's own row in a different table in the database, or backing a `JSONScalar` by a table to get around GraphQL's type strictness.
 
