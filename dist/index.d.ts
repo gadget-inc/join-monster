@@ -25,7 +25,11 @@ export type OrderBy =
   | { [key: string]: Direction }
 
 export type SortKey =
-  | { column: string; direction: Direction }[]
+  | {
+      column: string
+      key?: (table?: string) => string
+      direction: Direction
+    }[]
   | {
       order: Direction
       key: string | string[]

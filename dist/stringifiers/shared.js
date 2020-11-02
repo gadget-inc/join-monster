@@ -69,6 +69,7 @@ function sortKeyToOrderings(sortKey, args) {
   if (Array.isArray(sortKey)) {
     for (const {
       column,
+      key,
       direction
     } of sortKey) {
       (0, _assert.default)(column, `Each "sortKey" array entry must have a 'column' and a 'direction' property`);
@@ -76,6 +77,7 @@ function sortKeyToOrderings(sortKey, args) {
       if (flip) descending = !descending;
       orderColumns.push({
         column,
+        key,
         direction: descending ? 'DESC' : 'ASC'
       });
     }
@@ -164,8 +166,20 @@ FROM (
 function orderingsToString(orderings, q, as) {
   const orderByClauses = [];
 
-  for (const ordering of orderings) {
-    orderByClauses.push(`${as ? q(as) + '.' : ''}${q(ordering.column)} ${ordering.direction}`);
+  for (const {
+    column,
+    key,
+    direction
+  } of orderings) {
+    let sortKey;
+
+    if (key) {
+      sortKey = key(as);
+    } else {
+      sortKey = `${as ? q(as) + '.' : ''}${q(column)}`;
+    }
+
+    orderByClauses.push(`${sortKey} ${direction}`);
   }
 
   return orderByClauses.join(', ');
